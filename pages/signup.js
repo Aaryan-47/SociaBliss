@@ -1,155 +1,227 @@
-import {useState,useEffect,useRef} from 'react';
-import {HeaderMessage, FooterMessage} from '../components/common/WelcomeMessage.js'
-import CommonInput from '../components/common/CommonInput.js'
-import ImageDrop from '../components/common/ImageDrop.js'
-import {Form,Message,Segment,Divider,Button} from 'semantic-ui-react';
-import baseUrl from '../utils/baseUrl.js';
-import{registerUser,loginUser} from '../utils/authUser'
-import uploadPic from '../utils/uploadPicToCloudinary'
-import axios from 'axios';
-function Signup()
-{
-    const[userDetails,setuserDetails]=useState({name:"",password:"",email:"",bio:"",facebook:"",youtube:"",twitter:"",insta:""})
-    const[showSocial,setshowSocial]=useState(false)
-    const[showPassword,setshowPassword]=useState(false)
-    const[usernameLoading,setusernameLoading]=useState(false)
-    const[username,setusername]=useState('')
-    const[errorMsg,seterrorMsg]=useState(false)
-    const[usernameAvailable,setusernameAvailable]=useState(true)
-    const[formLoading,setformLoading]=useState(false)
-    const[submitDisable,setsubmitDisable]=useState(true)
+import React, { useState, useEffect, useRef } from "react";
+import { Form, Button, Message, Segment, Divider } from "semantic-ui-react";
+import CommonInputs from "../components/Common/CommonInputs";
+import ImageDropDiv from "../components/Common/ImageDropDiv";
+import { HeaderMessage, FooterMessage } from "../components/Common/WelcomeMessage";
+import axios from "axios";
+import baseUrl from "../utils/baseUrl";
+import { registerUser } from "../utils/authUser";
 
-    const[media,setmedia]=useState(null)
-    const[mediaPreview,setmediaPreview]=useState(null)
-    const[highlighted,sethighlighted]=useState(false)
-    const inputRef=useRef();
+import{ref, uploadBytes, getDownloadURL} from 'firebase/storage';
+import {v4} from 'uuid';
+import { storage } from "../firebase-config";
+const regexUserName = /^(?!.*\.\.)(?!.*\.$)[^\W][\w.]{0,29}$/;
+let cancel;
 
-    const{name,password,email,bio}=userDetails
+function Signup() {
+  const [user, setUser] = useState({
+    name: "",
+    email: "",
+    password: "",
+    bio: "",
+    facebook: "",
+    youtube: "",
+    twitter: "",
+    instagram: ""
+  });
 
-    const handle=async (e)=>{
-      e.preventDefault()
-      setformLoading(true)
-      let profilePicUrl;
-      if(media!==null)
-      {
-        profilePicUrl=await uploadPic(media);
+  const { name, email, password, bio } = user;
+
+  const handleChange = e => {
+    const { name, value, files } = e.target;
+
+    if (name === "media") {
+      setMedia(files[0]);
+      setMediaPreview(URL.createObjectURL(files[0]));
+    }
+
+    setUser(prev => ({ ...prev, [name]: value }));
+  };
+
+  const [showSocialLinks, setShowSocialLinks] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [errorMsg, setErrorMsg] = useState(null);
+  const [formLoading, setFormLoading] = useState(false);
+  const [submitDisabled, setSubmitDisabled] = useState(true);
+
+  const [username, setUsername] = useState("");
+  const [usernameLoading, setUsernameLoading] = useState(false);
+  const [usernameAvailable, setUsernameAvailable] = useState(false);
+
+  const [media, setMedia] = useState(null);
+  const [mediaPreview, setMediaPreview] = useState(null);
+  const [highlighted, setHighlighted] = useState(false);
+  const inputRef = useRef();
+
+  useEffect(() => {
+    const isUser = Object.values({ name, email, password, bio }).every(item =>
+      Boolean(item)
+    );
+    isUser ? setSubmitDisabled(false) : setSubmitDisabled(true);
+  }, [user]);
+
+  const checkUsername = async () => {
+    setUsernameLoading(true);
+    try {
+      cancel && cancel();
+
+      const CancelToken = axios.CancelToken;
+
+      const res = await axios.get(`${baseUrl}/api/signup/${username}`, {
+        cancelToken: new CancelToken(canceler => {
+          cancel = canceler;
+        })
+      });
+
+      if (errorMsg !== null) setErrorMsg(null);
+
+      if (res.data === "Available") {
+        setUsernameAvailable(true);
+        setUser(prev => ({ ...prev, username }));
       }
-      if(media!==null&&!profilePicUrl)
-      {
-        setformLoading(false);
-        return seterrorMsg("Error Uploading Image")
-      }
+    } catch (error) {
+      setErrorMsg("Username Not Available");
+      setUsernameAvailable(false);
+    }
+    setUsernameLoading(false);
+  };
 
-      await registerUser(userDetails,profilePicUrl,seterrorMsg,setformLoading)
+  useEffect(() => {
+    username === "" ? setUsernameAvailable(false) : checkUsername();
+  }, [username]);
+
+  const handleSubmit = async e => {
+    e.preventDefault();
+    setFormLoading(true);
+
+    let profilePicUrl;
+    if (media !== null) {
+      const imageRef=ref(storage,`/images/${media.name + v4()}`);
+        //console.log(imageRef);
+       
+        
+        uploadBytes(imageRef,media).then(()=>{
+         getDownloadURL(imageRef).then(async (url)=>{
+           await registerUser(user,url,setErrorMsg,setFormLoading)
+            //console.log(url)
+            })
+            .catch((err)=>{
+             console.log(err);
+            })
+        })
     }
 
-    const Change=(e)=>{
-      const{name,value,files}=e.target
-      if(name==="file")
-      {
-        setmedia(files[0])
-        setmediaPreview(URL.createObjectURL(files[0]))
-        //console.log(mediaPreview)
-      }
-      setuserDetails(prev=>({...prev,[name]:value}))
+    else{
+
+    await registerUser(user, profilePicUrl, setErrorMsg, setFormLoading);
     }
+  };
 
-    useEffect(()=>{
-     const Check=Object.values({name,email,bio,password}).every(item=>Boolean(item))
-     console.log(Check)
-     Check?setsubmitDisable(false):setsubmitDisable(true)
-    },[userDetails])
+  return (
+    <>
+      <HeaderMessage />
+      <Form loading={formLoading} error={errorMsg !== null} onSubmit={handleSubmit}>
+        <Message
+          error
+          header="Oops!"
+          content={errorMsg}
+          onDismiss={() => setErrorMsg(null)}
+        />
 
-    const CheckUsername=async ()=>{
-      setusernameLoading(true);
-      try{
-      const res=await axios.get(`${baseUrl}/api/signup/${username}`)
-      if(errorMsg!==null)
-      seterrorMsg(null)
-      if(res.data==='Available')
-      {
-        //console.log("lauda")
-       setusernameAvailable(true);
-       setuserDetails(prev=>({...prev,username:username}))
-      }
-    }
-    catch(error){
-      seterrorMsg("Username Not Available")
-      setusernameAvailable(false)
-      console.log(error)
-    }
-    setusernameLoading(false)
-    }
+        <Segment>
+          <ImageDropDiv
+            mediaPreview={mediaPreview}
+            setMediaPreview={setMediaPreview}
+            setMedia={setMedia}
+            inputRef={inputRef}
+            highlighted={highlighted}
+            setHighlighted={setHighlighted}
+            handleChange={handleChange}
+          />
+          <Form.Input
+            required
+            label="Name"
+            placeholder="Name"
+            name="name"
+            value={name}
+            onChange={handleChange}
+            fluid
+            icon="user"
+            iconPosition="left"
+          />
 
-    useEffect(()=>{
-     if(username==="")
-     {
-      setusernameAvailable(false);
-     }
-     else
-     {
-      CheckUsername()
-     }
-    },[username])
+          <Form.Input
+            required
+            label="Email"
+            placeholder="Email"
+            name="email"
+            value={email}
+            onChange={handleChange}
+            fluid
+            icon="envelope"
+            iconPosition="left"
+            type="email"
+          />
 
-    return(
-        <>
-        <HeaderMessage/>
-         <Form loading={formLoading} error={errorMsg!==null} onSubmit={handle} >
-           <Message
-           error
-           heading="Error!!"
-           content={errorMsg}
-           onDismiss={()=>seterrorMsg(null)}
-           />
-           <Segment>
-            <ImageDrop highLighted={highlighted} sethighLighted={sethighlighted} inputRef={inputRef} Change={Change}
-            mediaPreview={mediaPreview} setmediaPreview={setmediaPreview}/>
-           <Form.Input 
-           label="name" placeholder="Name" required
-           name="name"
-           value={name} fluid icon="user" 
-           iconPosition="left" 
-           onChange ={Change}/>
+          <Form.Input
+            label="Password"
+            placeholder="Password"
+            name="password"
+            value={password}
+            onChange={handleChange}
+            fluid
+            icon={{
+              name: "eye",
+              circular: true,
+              link: true,
+              onClick: () => setShowPassword(!showPassword)
+            }}
+            iconPosition="left"
+            type={showPassword ? "text" : "password"}
+            required
+          />
 
-           <Form.Input 
-           label="Email" placeholder="Email" 
-           value={email} fluid icon="envelope"
-           name="email"
-           type="email" 
-           iconPosition="left" 
-           onChange ={Change}/>
+          <Form.Input
+            loading={usernameLoading}
+            error={!usernameAvailable}
+            required
+            label="Username"
+            placeholder="Username"
+            value={username}
+            onChange={e => {
+              setUsername(e.target.value);
+              if (regexUserName.test(e.target.value)) {
+                setUsernameAvailable(true);
+              } else {
+                setUsernameAvailable(false);
+              }
+            }}
+            fluid
+            icon={usernameAvailable ? "check" : "close"}
+            iconPosition="left"
+          />
 
-           <Form.Input 
-           label="password" placeholder="Password" required
-           name="password"
-           value={password} fluid icon={{name:"eye",link:true,circular:true,onClick:()=>setshowPassword(!showPassword)}}
-           iconPosition="left"
-           type={showPassword?"text":"password"} 
-           onChange ={Change}/>
+          <CommonInputs
+            user={user}
+            showSocialLinks={showSocialLinks}
+            setShowSocialLinks={setShowSocialLinks}
+            handleChange={handleChange}
+          />
 
-           <Form.Input 
-           loading={usernameLoading}
-           error={!usernameAvailable}
-           label="Username" placeholder="Username" required
-           value={username} fluid icon={usernameAvailable?"check":"close"}
-           iconPosition="left"
-           type={showPassword?"text":"password"} 
-           onChange ={e=>{
-            setusername(e.target.value)
-           }}/>
+          <Divider hidden />
+          <Button
+            icon="signup"
+            content="Signup"
+            type="submit"
+            color="orange"
+            disabled={submitDisabled || !usernameAvailable}
+          />
+        </Segment>
+      </Form>
 
-           <CommonInput userDetails={userDetails} showSocial={showSocial} setshowSocial={setshowSocial} Change={Change}/>
-
-           <Divider/>
-           <Button content="Submit" type="submit" color="orange" disabled={submitDisable||!usernameAvailable} icon="signup"/>
-           </Segment>
-         </Form>
-
-
-        <FooterMessage/>
-        </>
-    )
+      <FooterMessage />
+    </>
+  );
 }
 
 export default Signup;

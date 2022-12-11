@@ -1,6 +1,8 @@
 import React, { useState, useRef } from "react";
 import { Form, Button, Image, Divider, Message, Icon } from "semantic-ui-react";
-import uploadPic from "../../utils/uploadPicToCloudinary";
+import{ref, uploadBytes, getDownloadURL} from 'firebase/storage';
+import {v4} from 'uuid';
+import { storage } from "../../firebase-config";
 import { submitNewPost } from "../../utils/postActions";
 
 function CreatePost({ user, setPosts }) {
@@ -13,6 +15,8 @@ function CreatePost({ user, setPosts }) {
 
   const [media, setMedia] = useState(null);
   const [mediaPreview, setMediaPreview] = useState(null);
+
+  const[picUrl,setPicUrl]=useState("")
 
   const handleChange = e => {
     const { name, value, files } = e.target;
@@ -38,15 +42,25 @@ function CreatePost({ user, setPosts }) {
   const handleSubmit = async e => {
     e.preventDefault();
     setLoading(true);
-    let picUrl;
+    
 
     if (media !== null) {
-      picUrl = await uploadPic(media);
-      if (!picUrl) {
-        setLoading(false);
-        return setError("Error Uploading Image");
-      }
+      const imageRef=ref(storage,`/images/${media.name + v4()}`);
+        //console.log(imageRef);
+       
+        
+        uploadBytes(imageRef,media).then(()=>{
+         getDownloadURL(imageRef).then(async (url)=>{
+           await submitNewPost(newPost.text,newPost.location,url,setPosts,setNewPost,setError)
+            console.log(url)
+            })
+            .catch((err)=>{
+             console.log(err);
+            })
+        })
+       
     }
+    else{
 
     await submitNewPost(
       newPost.text,
@@ -56,6 +70,7 @@ function CreatePost({ user, setPosts }) {
       setNewPost,
       setError
     );
+    }
 
     setMedia(null);
     setMediaPreview(null);

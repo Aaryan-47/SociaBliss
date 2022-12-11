@@ -1,25 +1,29 @@
-const UserModel=require('../models/UserModel');
-const express=require('express')
-const router=express.Router();
-const authMiddleWare=require('../middleware/authMiddleware')
+const express = require("express");
+const router = express.Router();
+const authMiddleware = require("../middleware/authMiddleware");
+const UserModel = require("../models/UserModel");
 
-router.get('/:searchText',authMiddleWare,async(req,res)=>{
-   const{searchText}=req.params;
+router.get("/:searchText", authMiddleware, async (req, res) => {
+  try {
+    const { searchText } = req.params;
+    const { userId } = req;
 
-   const{userId}=req;
-   if(searchText.length===0)
-   return
-   try{
-     let pattern=new RegExp(`^${searchText}`)
-     const result=await UserModel.find({name:{$regex:pattern,$options:"i"}})
+    if (searchText.length === 0) return;
 
-     const sentResults=result.length>0 && result.filter(res => res._id.toString()!== userId)
-     res.json(sentResults)
-   }
-   catch(error)
-   {
-    return res.status(401).send("Server Error")
-   }
-})
+    let userPattern = new RegExp(`^${searchText}`);
 
-module.exports=router
+    const results = await UserModel.find({
+      name: { $regex: userPattern, $options: "i" }
+    });
+
+    const resultsToBeSent =
+      results.length > 0 && results.filter(result => result._id.toString() !== userId);
+
+    return res.status(200).json(resultsToBeSent.length > 0 ? resultsToBeSent : results);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).send(`Server error`);
+  }
+});
+
+module.exports = router;

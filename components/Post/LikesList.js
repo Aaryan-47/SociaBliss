@@ -10,10 +10,9 @@ import { LikesPlaceHolder } from "../Layout/PlaceHolderGroup";
 function LikesList({ postId, trigger }) {
   const [likesList, setLikesList] = useState([]);
   const [loading, setLoading] = useState(false);
- 
+
   const getLikesList = async () => {
     setLoading(true);
-    console.log("ggggg")
     try {
       const res = await axios.get(`${baseUrl}/api/posts/like/${postId}`, {
         headers: { Authorization: cookie.get("token") }
@@ -26,7 +25,6 @@ function LikesList({ postId, trigger }) {
   };
 
   return (
-    <>
     <Popup
       on="click"
       onClose={() => setLikesList([])}
@@ -66,7 +64,6 @@ function LikesList({ postId, trigger }) {
         </>
       )}
     </Popup>
-    </>
   );
 }
 

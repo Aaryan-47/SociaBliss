@@ -16,8 +16,8 @@ import calculateTime from "../../utils/calculateTime";
 import Link from "next/link";
 import { deletePost, likePost } from "../../utils/postActions";
 import LikesList from "./LikesList";
-import ImageModal from "./ImageModel";
-import NoImageModal from "./NoImageModel";
+import ImageModal from "./ImageModal";
+import NoImageModal from "./NoImageModal";
 
 function CardPost({ post, user, setPosts, setShowToastr }) {
   const [likes, setLikes] = useState(post.likes);

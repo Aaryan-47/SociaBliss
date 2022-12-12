@@ -18,6 +18,7 @@ const {
   setMsgToUnread,
   deleteMsg
 } = require("./utilsServer/messageActions");
+const likeOrUnlikePost=require('./utilsServer/likeOrunlikePost')
 
 io.on("connection", socket => {
   socket.on("join", async ({ userId }) => {
@@ -29,6 +30,25 @@ io.on("connection", socket => {
         users: users.filter(user => user.userId !== userId)
       });
     }, 10000);
+  });
+
+  socket.on('likePost',async(userId,postId,like)=>{
+     const {success,error,name,profilePicUrl,username,PostByUserId}=await likeOrUnlikePost(userId,postId,like)
+     if(success)
+     {
+      socket.emit('PostLiked')
+
+      if(PostByUserId!==userId) //check if liking your own post
+      {
+        //check if user is online
+        const receiverSocketId=findConnectedUser(PostByUserId)
+        if(receiverSocketId && like)
+        {
+          io.to(receiverSocketId.socketId).emit('newNotificationRecieved',{name,profilePicUrl,username,postId})
+        }
+
+      }
+     }
   });
 
   socket.on("loadMessages", async ({ userId, messagesWith }) => {

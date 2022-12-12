@@ -4,8 +4,9 @@ const {newLikeNotification,removeLikeNotification}=require('../utilsServer/notif
 
 
 const likeOrUnlikePost=async(postId,userId,like)=>{
+   
   try{
-    const post=PostModel.findById(postId)
+    const post=await PostModel.findById(postId)
     if(!post)
     {
         return {error:"Post Not Found"}
@@ -47,6 +48,7 @@ const likeOrUnlikePost=async(postId,userId,like)=>{
     }
 
     const user=await UserModel.findById(userId)
+    //console.log(user)
     const {name,profilePicUrl,username}=user
 
     return {success:true,name,profilePicUrl,username,PostByUserId:post.user.toString()}
@@ -54,7 +56,7 @@ const likeOrUnlikePost=async(postId,userId,like)=>{
   }
   catch(error)
   {
-
+    console.log(error)
   }
 }
 

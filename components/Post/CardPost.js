@@ -30,6 +30,7 @@ function CardPost({ post, user, setPosts, setShowToastr, socket }) {
   const [error, setError] = useState(null);
 
   const [showModal, setShowModal] = useState(false);
+  //console.log(post)
 
   const addPropsToModal = () => ({
     post,
@@ -130,12 +131,11 @@ function CardPost({ post, user, setPosts, setShowToastr, socket }) {
               onClick={() =>{
                 if(socket.current)
                 {
-                   socket.current.emit('likePost',{postId:post._id,userId:user,like:isLiked?false:true})
-
+                   socket.current.emit('likePost',{postId:post._id,userId:user._id,like:isLiked?false:true})
                    socket.current.on('PostLiked',()=>{
                     if(isLiked)
                     {
-                      setLikes(prev => prev.filter(like=>like.user !== userId))
+                      setLikes(prev => prev.filter(like=>like.user !== user._id))
                     }
                     else
                     {

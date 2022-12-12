@@ -32,8 +32,12 @@ io.on("connection", socket => {
     }, 10000);
   });
 
-  socket.on('likePost',async(userId,postId,like)=>{
-     const {success,error,name,profilePicUrl,username,PostByUserId}=await likeOrUnlikePost(userId,postId,like)
+  socket.on('likePost',async({postId,userId,like})=>{
+   
+     console.log(postId)
+     console.log("hi")
+     const {success,error,name,profilePicUrl,username,PostByUserId}=await likeOrUnlikePost(postId,userId,like)
+     console.log(error)
      if(success)
      {
       socket.emit('PostLiked')

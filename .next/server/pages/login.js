@@ -39,7 +39,6 @@ function Login() {
     email: "",
     password: ""
   });
-  console.log("production");
   const {
     email,
     password
@@ -80,7 +79,8 @@ function Login() {
   }, [user]);
 
   const handleSubmit = async e => {
-    e.preventDefault();
+    e.preventDefault(); //prevent
+
     await (0,_utils_authUser__WEBPACK_IMPORTED_MODULE_2__/* .loginUser */ .pH)(user, setErrorMsg, setFormLoading);
   };
 

@@ -160,7 +160,7 @@ function TokenPage() {
 /***/ 4953:
 /***/ (function(module) {
 
-const baseUrl = "http://localhost:3000";
+const baseUrl =  false ? 0 : "https://sociabliss.onrender.com";
 module.exports = baseUrl;
 
 /***/ }),

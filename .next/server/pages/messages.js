@@ -631,6 +631,14 @@ Messages.getInitialProps = async ctx => {
 
 /***/ }),
 
+/***/ 4953:
+/***/ (function(module) {
+
+const baseUrl =  false ? 0 : "https://sociabliss.onrender.com";
+module.exports = baseUrl;
+
+/***/ }),
+
 /***/ 7354:
 /***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
@@ -767,7 +775,7 @@ module.exports = require("socket.io-client");;
 var __webpack_require__ = require("../webpack-runtime.js");
 __webpack_require__.C(exports);
 var __webpack_exec__ = function(moduleId) { return __webpack_require__(__webpack_require__.s = moduleId); }
-var __webpack_exports__ = __webpack_require__.X(0, [831], function() { return __webpack_exec__(9517); });
+var __webpack_exports__ = __webpack_require__.X(0, [585], function() { return __webpack_exec__(9517); });
 module.exports = __webpack_exports__;
 
 })();

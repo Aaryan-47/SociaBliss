@@ -229,6 +229,14 @@ Notifications.getInitialProps = async ctx => {
 
 /***/ }),
 
+/***/ 4953:
+/***/ (function(module) {
+
+const baseUrl =  false ? 0 : "https://sociabliss.onrender.com";
+module.exports = baseUrl;
+
+/***/ }),
+
 /***/ 3844:
 /***/ (function(__unused_webpack_module, __webpack_exports__) {
 
@@ -328,7 +336,7 @@ module.exports = require("semantic-ui-react");;
 var __webpack_require__ = require("../webpack-runtime.js");
 __webpack_require__.C(exports);
 var __webpack_exec__ = function(moduleId) { return __webpack_require__(__webpack_require__.s = moduleId); }
-var __webpack_exports__ = __webpack_require__.X(0, [831,145], function() { return __webpack_exec__(438); });
+var __webpack_exports__ = __webpack_require__.X(0, [585,145], function() { return __webpack_exec__(438); });
 module.exports = __webpack_exports__;
 
 })();

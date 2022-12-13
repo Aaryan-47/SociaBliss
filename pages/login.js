@@ -9,7 +9,7 @@ function Login() {
     email: "",
     password: ""
   });
-
+  console.log(process.env.NODE_ENV)
   const { email, password } = user;
   const [showPassword, setShowPassword] = useState(false);
   const [errorMsg, setErrorMsg] = useState(null);

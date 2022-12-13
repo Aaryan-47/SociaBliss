@@ -28,7 +28,7 @@ function Login() {
   }, [user]);
 
   const handleSubmit = async e => {
-    e.preventDefault();
+    e.preventDefault();//prevent
 
     await loginUser(user, setErrorMsg, setFormLoading);
   };

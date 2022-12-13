@@ -4,3 +4,4 @@ const baseUrl =
     : "https://sociabliss.onrender.com";
 
 
+module.exports=baseUrl
